@@ -1,0 +1,52 @@
+#!/bin/bash
+#PBS -N jacobi_two_nodes
+#PBS -q auto_free
+#PBS -l select=2:ncpus=8:mpiprocs=8:ompthreads=1:mem=8gb
+#PBS -l place=scatter
+#PBS -l walltime=01:00:00
+#PBS -j oe
+set -e
+source /etc/profile || true
+module load gompi/2024a
+set -uo pipefail
+PROJECT="$PBS_O_WORKDIR"
+NAME="vanda_two_nodes_$PBS_JOBID"
+RUN_ROOT="${PROJECT3_RUN_ROOT:-/scratch/$USER/project3_runs}"
+RUN="$RUN_ROOT/$NAME"
+BACKUP_ROOT="${PROJECT3_BACKUP_ROOT:-$HOME/project3_backups}"
+BACKUP="$BACKUP_ROOT/$NAME"
+mkdir -p "$RUN" "$BACKUP"
+finish() {
+    status=$?
+    set +e
+    for item in results src scripts Makefile environment.txt pbs_record.txt; do
+        if [ -e "$RUN/$item" ]; then cp -a "$RUN/$item" "$BACKUP/"; fi
+    done
+    echo "JOB_EXIT_CODE=$status"
+    exit "$status"
+}
+trap finish EXIT
+cp -a "$PROJECT/src" "$PROJECT/scripts" "$PROJECT/Makefile" "$RUN/"
+cd "$RUN"
+mkdir -p results/vanda
+{
+    date -Is
+    hostname
+    module -t list 2>&1
+    g++ --version
+    mpiexec --version
+    cat "$PBS_NODEFILE"
+    python3 --version
+} > environment.txt 2>&1
+qstat -f "$PBS_JOBID" > pbs_record.txt
+make -j2
+unset JACOBI_BINDING
+python3 scripts/run_vanda.py --nodes 2 --output results/vanda
+(
+    set +u
+    module purge
+    module load matplotlib/3.10.3-gfbf-2025a
+    module -t list > results/vanda/plot_modules.txt 2>&1
+    python3 scripts/analyse.py --directory results/vanda --platform "Vanda two-node"
+)
+echo "VANDA_JOB_COMPLETE"
