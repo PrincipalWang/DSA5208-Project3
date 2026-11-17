@@ -4,7 +4,7 @@ import math
 from run_common import ROOT, execute, read_result
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--directory', default='results/runpod')
+parser.add_argument('--directory', default='results/vanda')
 args = parser.parse_args()
 out = ROOT / args.directory
 out.mkdir(parents=True, exist_ok=True)
