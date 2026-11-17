@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -N supplement_analysis
+#PBS -q auto_free
+#PBS -l select=1:ncpus=1:mem=8gb
+#PBS -l walltime=00:15:00
+#PBS -j oe
+set -e
+source /etc/profile || true
+module load matplotlib/3.10.3-gfbf-2025a
+set -uo pipefail
+PROJECT="$PBS_O_WORKDIR"
+RUN_ROOT="${PROJECT3_SUPPLEMENT_RUN_ROOT:-/scratch/$USER/project3_supplement_runs}"
+OUTPUT="$HOME/project3_supplement_results/$PBS_JOBID"
+python3 "$PROJECT/scripts/analyse_supplement.py" --single "$RUN_ROOT/supplement_single_$SUPPLEMENT_SINGLE" --two "$RUN_ROOT/supplement_two_$SUPPLEMENT_TWO" --project "$PROJECT" --output "$OUTPUT"
