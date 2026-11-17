@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--directory', default='results/runpod')
+parser.add_argument('--directory', default='results/vanda')
 parser.add_argument('--platform', default='Vanda')
 args = parser.parse_args()
 out = Path(args.directory).resolve()
