@@ -32,12 +32,6 @@ def mpi_command(ranks, threads=1, nodes=1, binding=False):
     command = shlex.split(os.environ.get("MPIEXEC", "mpiexec"))
     command += shlex.split(os.environ.get("MPIEXEC_FLAGS", ""))
     command += ["-n", str(ranks)]
-    if binding and os.environ.get('JACOBI_BINDING') == 'linux':
-        if ranks % nodes:
-            raise ValueError('Ranks must be divisible by the node count')
-        command += ['--map-by', f'ppr:{ranks // nodes}:node', '--bind-to', 'none',
-                    sys.executable, str(ROOT / 'scripts/bind_rank.py'), str(threads)]
-        return command
     if binding:
         if ranks % nodes:
             raise ValueError("The number of ranks must be divisible by the node count")
